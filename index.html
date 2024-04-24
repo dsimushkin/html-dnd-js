@@ -1,0 +1,90 @@
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"> 
+        <style>
+        #asd { 
+            width: 200px; height: 200px; background: red;
+            animation-timing-function: steps(1, end);
+            animation-duration: 200ms;
+        }
+        @keyframes drop { from { background: yellow; } to { background: red; }}
+        @keyframes cancel { from { background: magenta; } to { background: red; }}
+        @keyframes dblclick { from { background: blue; } to { background: red; }}
+        @keyframes click { from { background: cyan; } to { background: red; }}
+        </style>
+    </head>
+    <body>
+        <div>
+            <div id="asd"></div>
+            <div>This text should not be selected during drag.</div>
+            <div>
+                Rectangle color should change when in drag mode.
+                <br>
+                Rectangle color should blink when one of events occur:
+                <br>
+                - drag cancel
+                <br>
+                - drop successful
+                <br>
+                - click
+                <br>
+                - dblclick
+            </div>
+        </div>
+        <script type="module">
+
+        import * as dnd from "/dnd-core.mjs";
+        const destroy = dnd.init();
+
+        const node = document.getElementById("asd");
+        if (node == null) throw new Error("Element not found");
+
+        const props = "123";
+        const unlink = dnd.draggable(props, node, { delay: 200 });
+
+        let clickTimeout = null;
+        dnd.observer.addEventListener("dnd-drag", (event) => {
+            // check manually
+            if (event.detail.props !== props) return;
+            const { dx, dy } = event.detail;
+
+            // translate3d is considered to be faster than translate
+            node.style.transform = `translate3d(${dx}px, ${dy}px, 1px)`
+            node.style.background = "green";
+            node.style.animationName = "";
+        });
+
+        dnd.observer.addEventListener("dnd-drop", (event) => {
+            // check manually
+            if (event.detail.props !== props) return;
+            node.style.transform = "";
+            node.style.background = "red";
+            node.style.animationName = "";
+
+            // explicitly handle `canceled` flag
+            if (event.detail.canceled) {
+                setTimeout(() => node.style.animationName = "cancel");
+            } else {
+                setTimeout(() => node.style.animationName = "drop");
+            }
+            // even 0 timeout is enough to prevent click events
+            clickTimeout = setTimeout(() => clickTimeout = null);
+        });
+
+        node.addEventListener("dblclick", (e) => {
+            if (clickTimeout) return;
+            node.style.animationName = "";
+            setTimeout(() => node.style.animationName = "dblclick");
+        }, false);
+
+        node.addEventListener("click", () => {
+            if (clickTimeout) return;
+            node.style.animationName = "";
+            setTimeout(() => node.style.animationName = "click");
+        });
+
+        // DON'T forget to destroy the draggable
+        // unlink();
+        </script>
+    </body>
+</html>
