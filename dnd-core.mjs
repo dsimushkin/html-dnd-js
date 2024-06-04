@@ -1,6 +1,7 @@
 /**
  * Thin abstraction layer for custom HTML dnd.
  * @link https://github.com/dsimushkin/html-dnd-js
+ * @version 1.0.0
  */
 
 /**
