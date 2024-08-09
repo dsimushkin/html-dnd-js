@@ -49,20 +49,22 @@ export const observer = new EventTarget();
  * @returns {() => void} destructor
  */
 export function init() {
-    window.addEventListener("mousemove", move, true);
-    window.addEventListener("mouseup", drop);
-    window.addEventListener("touchmove", move, false);
-    window.addEventListener("touchend", drop);
-    window.addEventListener("contextmenu", cancel);
-    window.addEventListener("touchcancel", cancel);
+    window.addEventListener("mousemove", move, { capture: true, passive: true });
+    window.addEventListener("mouseup", drop, { capture: true, passive: true });
+    window.addEventListener("touchmove", move, { capture: true, passive: false });
+    window.addEventListener("touchend", drop, { capture: true, passive: true });
     // second touch interruptor
-    window.addEventListener("touchstart", cancel, { capture: true });
+    window.addEventListener("touchstart", cancel, { capture: true, passive: true });
+    window.addEventListener("contextmenu", cancel, { capture: true, passive: true });
+    window.addEventListener("touchcancel", cancel, { capture: true, passive: true });
     return () => {
         window.removeEventListener("mousemove", move, true);
-        window.removeEventListener("mouseup", drop);
-        window.removeEventListener("touchmove", move, false);
-        window.removeEventListener("touchend", drop);
-        window.removeEventListener("touchstart", cancel);
+        window.removeEventListener("mouseup", drop, true);
+        window.removeEventListener("touchmove", move, true);
+        window.removeEventListener("touchend", drop, true);
+        window.removeEventListener("touchstart", cancel, true);
+        window.removeEventListener("contextmenu", cancel, true);
+        window.removeEventListener("touchcancel", cancel, true);
     };
 }
 
@@ -105,7 +107,7 @@ function cancel() {
 }
 
 function start(props, delay, e) {
-    if (state.props != null) return cancel();
+    if (state.props != null) return;
     // prevent selection + scroll due to selection
     toggleUserSelect();
     state.props = props;
